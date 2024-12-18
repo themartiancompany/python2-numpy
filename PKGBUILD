@@ -67,16 +67,60 @@ prepare() {
         "f")
 }
 
+_bin_get() {
+  local \
+    _bin \
+    _gcc
+  _gcc="$( \
+    command \
+      -v \
+      "gfortran")"
+  _bin="$( \
+    dirname \
+      "${_gcc}")"
+  echo \
+    "${_bin}"
+}
+
+_usr_get() {
+  local \
+    _bin
+  _bin="$( \
+    _bin_get)"
+  echo \
+    "$(dirname \
+      "${_bin}")"
+}
+
+_include_get() {
+  local \
+    _usr
+  _usr="$( \
+    _usr_get)"  
+  echo \
+    "${_usr}/include"
+}
+
 build() {
+  local \
+    _cflags=() \
+    _include
+  _include="$( \
+    _include_get)"
+  _cflags+=(
+    "${CFLAGS}"
+    -ffat-lto-objects
+  )
   cd \
     "${_pkg}-${pkgver}"
-  CFLAGS+=" -ffat-lto-objects" \
+  CFLAGS="${_cflags[*]}" \
   "${_py}" \
     setup.py \
       build
 }
 
 package() {
+  cd \
     "${_pkg}-${pkgver}"
   "${_py}" \
     setup.py \
